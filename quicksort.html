@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Testbed for Quicksort Implementation</title>
+        <!--CSS-->
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/logger/assets/logger.css">
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/yuitest/assets/testlogger.css">
+        
+        <!-- Dependencies --> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/logger/logger-min.js"></script>
+        
+        <!-- Source File -->
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/yuitest/yuitest-min.js"></script>
+
+        <script>
+            Array.prototype.print = function() {
+                var output = "[ ";
+                for ( i = 0; i < this.length; i++ ) {
+                    output += (( i ) ? ", " : "" ) + "`" + this[ i ] + "`";
+                }
+                output += " ]";
+                return output;
+            }
+    
+            Array.prototype.quicksort = ( function () {
+                function _quicksort( a, start, end ) {
+                    console.log( 'Called _quicksort with %s, Start: %d, End: %d', a.print(), start, end );
+                    var pivot_index = null;
+                    if ( start < end ) {
+                        pivot_index = _partition( a, start, end );
+                        _quicksort( a, start, pivot_index - 1 );
+                        _quicksort( a, pivot_index + 1, end );
+                    }
+                }
+
+                function _partition( a, start, end ) {
+                    console.log( 'Called _partition with %s, Start: %d, End: %d', a.print(), start, end );
+                    var pivot_value = a[ end ],
+                        pivot_index = start - 1,
+                        i           = null,
+                        tmp         = null;
+
+                    for ( i = start; i < end; i += 1 ) {
+                        if ( a[ i ] <= pivot_value ) {
+                            pivot_index += 1;
+
+                            _exchange( a, pivot_index, i );
+                        }
+                    }
+
+                    pivot_index += 1;
+
+                    _exchange( a, pivot_index, end );
+
+                    console.log( "    _partition returning %d", pivot_index );
+                    return pivot_index;
+                }
+
+                function _exchange( a, x, y ) {
+                    console.log( "        _exchange called on %s, X: %s, Y: %s", a.print(), x, y );
+                    var tmp = a[ x ];
+                    a[ x ]  = a[ y ];
+                    a[ y ]  = tmp;
+                }
+
+                return function() {
+                    var tmp = this.slice();
+                    _quicksort( tmp, 0, tmp.length - 1 );
+                    return tmp;
+                };
+            }() );
+
+            var ArrayAssert = YAHOO.util.ArrayAssert,
+                Assert      = YAHOO.util.Assert;
+
+            var tests   = new YAHOO.tool.TestCase( {
+                name:   'QuickSort Test',
+
+
+                testOnePassEmptyArray: function() {
+                    var tmp = [];
+                    ArrayAssert.itemsAreEqual( [], tmp.quicksort(), "An empty array, sorted, is empty." );
+                },
+                
+                testOnePassSingleValueArray: function() {
+                    var tmp = [ 1 ];
+                    ArrayAssert.itemsAreEqual( [ 1 ], tmp.quicksort(), "An one-element array, sorted, is sorted." );
+                },
+
+                testOnePassTwoValueArray: function() {
+                    var tmp = [ 2, 1 ];
+                    ArrayAssert.itemsAreEqual( [ 1, 2 ], tmp.quicksort(), "An two-element array, sorted, is sorted." );
+                },
+                testOnePassThreeValueArray: function() {
+                    var tmp = [ 2, 3, 1 ];
+                    ArrayAssert.itemsAreEqual( [ 1, 2, 3 ], tmp.quicksort(), "A three-element array, sorted, is sorted." );
+                },
+
+                testTwoPassThreeValueArray: function() {
+                    console.log( "Start Paying Attention HERE -----------------------" );
+                    var tmp = [ 3, 1, 2 ];
+                    ArrayAssert.itemsAreEqual( [ 1, 2, 3 ], tmp.quicksort(), "A three-element array, sorted, is sorted." );
+                },
+
+                testBigNastyRandomArray: function() {
+                    var size = Math.floor( Math.random() * 100 ),
+                        tmp  = [];
+
+                    for ( i = 0; i<size; i++ ) {
+                        tmp[ tmp.length ] = Math.floor( Math.random() * 100 );
+                    }
+                    var copy = tmp.slice( 0, tmp.length );
+                    copy.sort( function (a, b) { return a-b; } );
+                    ArrayAssert.itemsAreEqual( copy, tmp.quicksort(), "A large, nasty random array ends up with the same results as `.sort`" );
+                }
+            } );
+        </script>
+    </head>
+    <body>
+
+        <script>
+            var oLogger = new YAHOO.tool.TestLogger();
+            YAHOO.tool.TestRunner.add( tests );
+            YAHOO.tool.TestRunner.run();
+        </script>
+    </body>
+</html>
