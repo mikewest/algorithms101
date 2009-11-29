@@ -34,17 +34,17 @@
             }
     
             Array.prototype.quicksort = ( function () {
-                function _quicksort( a, start, end ) {
+                function _quicksort( a, start, end, cmp ) {
                     DEBUG && console.log( 'Called _quicksort with %s, Start: %d, End: %d', a.print(), start, end );
                     var pivot_index = null;
                     if ( start < end ) {
-                        pivot_index = _partition( a, start, end );
-                        _quicksort( a, start, pivot_index - 1 );
-                        _quicksort( a, pivot_index + 1, end );
+                        pivot_index = _partition( a, start, end, cmp );
+                        _quicksort( a, start, pivot_index - 1, cmp );
+                        _quicksort( a, pivot_index + 1, end, cmp );
                     }
                 }
 
-                function _partition( a, start, end ) {
+                function _partition( a, start, end, cmp ) {
                     DEBUG && console.log( 'Called _partition with %s, Start: %d, End: %d', a.print(), start, end );
 
                     // Randomize the last item of the array to reduce the risk
@@ -57,7 +57,7 @@
                         tmp         = null;
 
                     for ( i = start; i < end; i += 1 ) {
-                        if ( a[ i ] <= pivot_value ) {
+                        if ( cmp( a[ i ], pivot_value ) <= 0 ) {
                             pivot_index += 1;
                             _exchange( a, pivot_index, i );
                         }
@@ -77,10 +77,13 @@
                     a[ y ]  = tmp;
                 }
 
-                return function() {
+                return function( cmp ) {
                     // Copy the array with `.slice()`, leave original untouched.
                     var tmp = this.slice();
-                    _quicksort( tmp, 0, tmp.length - 1 );
+                    if ( !cmp ) {
+                        cmp = function ( a, b ) { return a - b; };
+                    }
+                    _quicksort( tmp, 0, tmp.length - 1, cmp );
                     return tmp;
                 };
             }() );
@@ -119,6 +122,12 @@
                 testTwoPassThreeValueArray: function() {
                     var tmp = [ 3, 1, 2 ];
                     ArrayAssert.itemsAreEqual( [ 1, 2, 3 ], tmp.quicksort(), "A three-element array, sorted, is sorted." );
+                },
+
+                testCmpFunction: function() {
+                    var tmp = [ 3, 1, 2 ],
+                        cmp = function ( a, b ) { return b - a; };
+                    ArrayAssert.itemsAreEqual( [ 3, 2, 1 ], tmp.quicksort( cmp ), "Custom comparison function ought behave correctly." );
                 },
 
                 testBigNastyRandomArray: function() {
