@@ -2,18 +2,28 @@
 <html>
     <head>
         <title>Testbed for Quicksort Implementation</title>
-        <!--CSS-->
-        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/logger/assets/logger.css">
-        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/yuitest/assets/testlogger.css">
-        
-        <!-- Dependencies --> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/logger/logger-min.js"></script>
-        
-        <!-- Source File -->
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/yuitest/yuitest-min.js"></script>
+        <!--
+          - YUI Test Dependencies (YUI 2.8.0)
+          -->
+        <link rel="stylesheet" type="text/css" href="./yui/logger.css">
+        <link rel="stylesheet" type="text/css" href="./yui/testlogger.css">
+        <script type="text/javascript" src="./yui/yahoo-dom-event.js"></script>
+        <script type="text/javascript" src="./yui/logger-min.js"></script>
+        <script type="text/javascript" src="./yui/yuitest-min.js"></script>
 
+        <!--
+          - Quicksort Code: Based on discussion in "Introduction to Algorithms"
+          -->
         <script>
+            var DEBUG = false;
+
+            /**
+             *  Create a string to display the values of an array.
+             *  
+             *  I ran into timing issues with `console.log`'s Array display
+             *  in webkit.  Rolling my own solves the problem (which I still
+             *  don't actually understand...)
+            **/
             Array.prototype.print = function() {
                 var output = "[ ";
                 for ( i = 0; i < this.length; i++ ) {
@@ -25,7 +35,7 @@
     
             Array.prototype.quicksort = ( function () {
                 function _quicksort( a, start, end ) {
-                    console.log( 'Called _quicksort with %s, Start: %d, End: %d', a.print(), start, end );
+                    DEBUG && console.log( 'Called _quicksort with %s, Start: %d, End: %d', a.print(), start, end );
                     var pivot_index = null;
                     if ( start < end ) {
                         pivot_index = _partition( a, start, end );
@@ -35,7 +45,12 @@
                 }
 
                 function _partition( a, start, end ) {
-                    console.log( 'Called _partition with %s, Start: %d, End: %d', a.print(), start, end );
+                    DEBUG && console.log( 'Called _partition with %s, Start: %d, End: %d', a.print(), start, end );
+
+                    // Randomize the last item of the array to reduce the risk
+                    // of `O(n^2)` performance in the worst case.
+                    _exchange( a, end, Math.floor( Math.random() * ( end - start ) + start ) );
+                    
                     var pivot_value = a[ end ],
                         pivot_index = start - 1,
                         i           = null,
@@ -44,33 +59,37 @@
                     for ( i = start; i < end; i += 1 ) {
                         if ( a[ i ] <= pivot_value ) {
                             pivot_index += 1;
-
                             _exchange( a, pivot_index, i );
                         }
                     }
 
                     pivot_index += 1;
-
                     _exchange( a, pivot_index, end );
 
-                    console.log( "    _partition returning %d", pivot_index );
+                    DEBUG && console.log( "    _partition returning %d", pivot_index );
                     return pivot_index;
                 }
 
                 function _exchange( a, x, y ) {
-                    console.log( "        _exchange called on %s, X: %s, Y: %s", a.print(), x, y );
+                    DEBUG && console.log( "        _exchange called on %s, X: %s, Y: %s", a.print(), x, y );
                     var tmp = a[ x ];
                     a[ x ]  = a[ y ];
                     a[ y ]  = tmp;
                 }
 
                 return function() {
+                    // Copy the array with `.slice()`, leave original untouched.
                     var tmp = this.slice();
                     _quicksort( tmp, 0, tmp.length - 1 );
                     return tmp;
                 };
             }() );
+        </script>
 
+        <!--
+          - YUI Test-based Unit Tests for Quicksort.
+          -->
+        <script>
             var ArrayAssert = YAHOO.util.ArrayAssert,
                 Assert      = YAHOO.util.Assert;
 
@@ -98,13 +117,12 @@
                 },
 
                 testTwoPassThreeValueArray: function() {
-                    console.log( "Start Paying Attention HERE -----------------------" );
                     var tmp = [ 3, 1, 2 ];
                     ArrayAssert.itemsAreEqual( [ 1, 2, 3 ], tmp.quicksort(), "A three-element array, sorted, is sorted." );
                 },
 
                 testBigNastyRandomArray: function() {
-                    var size = Math.floor( Math.random() * 100 ),
+                    var size = Math.floor( Math.random() * 10000 ),
                         tmp  = [];
 
                     for ( i = 0; i<size; i++ ) {
