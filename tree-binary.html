@@ -61,6 +61,57 @@
                 }
                 return insert;
             };
+
+            /**
+             *  Search for a value in the tree.
+             *
+             *  @method     search
+             *  @returns    {Node}              The node containing `value` (or `null`)
+             *  @param      {Object}    needle  The value to search for
+             */
+            BinaryTree.prototype.search = function ( needle ) {
+                var current = this._root;
+
+                while ( current ) {
+                    if ( current.value === needle ) {
+                        return current;
+                    } else if ( current.value > needle ) {
+                        current = current.left;
+                    } else {
+                        current = current.right;
+                    }
+                }
+                return null;
+            };
+
+            /**
+             *  Find a node's successor in the tree
+             *
+             *  @method     successor
+             *  @returns    {Node}          The node with the value that follow's
+             *                              `node`'s (or `null`, if `node` is the largest)
+             *  @param      {Node}  node    The node whose successor we're looking for.
+             */
+            BinaryTree.prototype.successor = function ( node ) {
+                var current     = node,
+                    previous    = node;;
+                if ( node.right ) {
+                    current = node.right;
+                    while ( current.left ) {
+                        current = current.left;
+                    }
+                } else if ( node.parent ) {
+                    current = node.parent;
+                    while ( current && current.right === previous ) {
+                        previous    = current;
+                        current     = current.parent;
+                    }
+                } else {
+                    return null;       
+                }
+                return current;
+            };
+
         </script>
 
 
@@ -87,7 +138,9 @@
                     Assert.isInstanceOf( BinaryTree, tree, "The tree should be a `BinaryTree` object." );
                     Assert.areEqual( tree._root, null, "The tree's root should be null." );
                 },
-
+//
+// Tests for `.insert()`
+//
                 testInsertIntoEmptyTree: function () {
                     var tree = new BinaryTree();
                     tree.insert( 1 );
@@ -122,8 +175,78 @@
                     assertNodeEquals( tree._root.right,         10, five, seven, null, "ten" );
                     assertNodeEquals( tree._root.left,          1,  five, null,  null, "one" );
                     assertNodeEquals( tree._root.right.left,    7,  ten,  null,  null, "seven" );
-
                 },
+//
+//  Tests for `.search()`
+//
+                testSearchEmptyTree: function () {
+                    var tree = new BinaryTree();
+                    Assert.areEqual( tree.search( 1 ), null, "`1` doesn't exist in the tree, search should return `null`." );
+                },
+                testSearchForRoot: function () {
+                    var tree = new BinaryTree();
+                    tree.insert( 1 );
+                    Assert.areEqual( tree.search( 1 ), tree._root, "`1` is the tree's root." );
+                },
+                testSearchLeft:   function () {
+                    var tree = new BinaryTree();
+                    var five = tree.insert( 5 ),
+                        ten  = tree.insert( 10 ),
+                        one  = tree.insert( 1 );
+                    Assert.areEqual( tree.search( 1 ),  one, "`1` is found in the tree to the left of the root." );
+                },
+                testSearchRight:   function () {
+                    var tree = new BinaryTree();
+                    var five = tree.insert( 5 ),
+                        ten  = tree.insert( 10 ),
+                        one  = tree.insert( 1 );
+                    Assert.areEqual( tree.search( 10 ), ten, "`10` is found in the tree to the right of the root." );
+                },
+                testSearchUnfound:   function () {
+                    var tree = new BinaryTree();
+                    var five = tree.insert( 5 ),
+                        ten  = tree.insert( 10 ),
+                        one  = tree.insert( 1 );
+                    Assert.areEqual( tree.search( 100 ), null, "The tree should return `null`, as `100` isn't a member of the set.");
+                },
+//
+//  Tests for `.successor()`
+//
+                testSuccessorForOneNodeTree: function () {
+                    var tree = new BinaryTree();
+                    tree.insert( 1 );
+                    Assert.areEqual( tree.successor( tree._root ), null, "`1` is the only node in the tree.  It doesn't have a successor." );
+                },
+                testSuccessorForRightLeaf: function () {
+                    var tree = new BinaryTree();
+                    var five = tree.insert( 5 ),
+                        ten  = tree.insert( 10 ),
+                        one  = tree.insert( 1 );
+                    Assert.areEqual( tree.successor( ten ), null, "`10` is the largest node in the tree.  It doesn't have a successor." );
+                },
+                testSuccessorForLeftLeaf: function () {
+                    var tree = new BinaryTree();
+                    var five = tree.insert( 5 ),
+                        ten  = tree.insert( 10 ),
+                        one  = tree.insert( 1 );
+                    Assert.areEqual( tree.successor( one ), five, "`5` is `1`'s successor, as it's the first ancestor to the right of `1`." );
+                },
+                testSuccessorDirect: function () {
+                    var tree = new BinaryTree();
+                    var five = tree.insert( 5 ),
+                        ten  = tree.insert( 10 ),
+                        one  = tree.insert( 1 );
+                    Assert.areEqual( tree.successor( five ),  ten, "`10` is `5`'s successor, as it's `5`'s right child, and has no left children." );
+                },
+                testSuccessorIndirect: function () {
+                    var tree    = new BinaryTree();
+                    var five    = tree.insert( 5 ),
+                        ten     = tree.insert( 10 ),
+                        one     = tree.insert( 1 ),
+                        three   = tree.insert( 3 );
+                    Assert.areEqual( tree.successor( three ),  five, "`5` is `3`'s successor, as it's the first ancestor to the right of `3`." );
+                },
+
             } );
         </script>
     </head>
