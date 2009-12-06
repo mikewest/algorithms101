@@ -1,5 +1,5 @@
 var assert  = require( "test/assert" );
-var sort    = require( "../../sort/quick" ).quicksort;
+var sort    = require( "../../sort/merge" ).mergesort;
 var perms   = require( "../permutations" ).permutations;
 
 exports.testEmptyArray          =   function() {

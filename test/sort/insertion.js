@@ -1,5 +1,6 @@
 var assert  = require( "test/assert" );
 var sort    = require( "../../sort/insertion" ).insertionsort;
+var perms   = require( "../permutations" ).permutations;
 
 exports.testEmptyArray          =   function() {
     var tmp = [];
@@ -19,15 +20,8 @@ exports.testTwoValueArray       = function() {
 };
 
 exports.testThreeValueArray     = function() {
-    var tests   = [
-            [ 3, 2, 1 ],
-            [ 3, 1, 2 ],
-            [ 2, 3, 1 ],
-            [ 2, 1, 3 ],
-            [ 1, 2, 3 ],
-            [ 1, 3, 2 ]
-        ],
-        i = 0;
+    var tests   = perms( [ 1, 2, 3 ] ),
+        i       = 0;
 
     for ( i = 0; i < tests.length; i += 1 ) {
         assert.eq( [ 1, 2, 3 ], sort( tests[ i ] ), "Sorting a three-element list in any order returns a sorted array." );
@@ -35,19 +29,27 @@ exports.testThreeValueArray     = function() {
 };
 
 exports.testCmpFunction         = function () {
-    var tests   = [
-            [ 3, 2, 1 ],
-            [ 3, 1, 2 ],
-            [ 2, 3, 1 ],
-            [ 2, 1, 3 ],
-            [ 1, 2, 3 ],
-            [ 1, 3, 2 ]
-        ],
+    var tests   = perms( [ 3, 2, 1 ] ),
         cmp     = function ( a, b ) { return b - a; },
         i       = 0;
 
     for ( i = 0; i < tests.length; i += 1 ) {
         assert.eq( [ 3, 2, 1 ], sort( tests[ i ], cmp ), "Custom comparison functions ought behave correctly." );
+    }
+};
+
+exports.testBruteForce          = function () {
+    var base    = [],
+        tests   = [],
+        count   = 0,
+        i       = 0;
+
+    for ( count = 0; count < 7; count += 1 ) {
+        base[ count ]   = count;
+        tests           = perms( base );
+        for ( i = 0; i < tests.length; i += 1 ) {
+            assert.eq( base, sort( tests[ i ] ), "Bruteforce-generated lists should all sort correctly." );
+        }
     }
 };
 
