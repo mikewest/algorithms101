@@ -21,14 +21,14 @@
  *  @returns    {Array}         A copy of `tosort`, sorted.
  */
 exports.insertionsort = ( function() {
-    var _insertionsort, _exchange;
+    var _insertionsort, _exchange, _comparison;
 
-    _insertionsort  = function ( a, cmp ) {
+    _insertionsort  = function ( a ) {
         var sorted_partition, key, current_index;
         for ( sorted_partition = 1; sorted_partition < a.length; sorted_partition += 1 ) {
             current_index   = sorted_partition;
             key             = a[ sorted_partition ];
-            while ( current_index && cmp( key, a[ current_index - 1 ] ) < 0 ) {
+            while ( current_index && _comparison( key, a[ current_index - 1 ] ) < 0 ) {
                 _exchange( a, current_index, current_index - 1 );
                 current_index -= 1;
             }
@@ -47,6 +47,10 @@ exports.insertionsort = ( function() {
         if ( !cmp ) {
             cmp = function ( a, b ) { return a - b; };
         }
+
+        // Set the quasi-global comparison function
+        _comparison = cmp;
+
         return _insertionsort( tmp, cmp );
     };
 }() );

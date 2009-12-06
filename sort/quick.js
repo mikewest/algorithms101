@@ -21,18 +21,18 @@
  *  @returns    {Array}         A copy of `tosort`, sorted.
  */
 exports.quicksort   = ( function () {
-    var _quicksort, _partition, _exchange;
+    var _quicksort, _partition, _exchange, _comparison;
 
-    _quicksort  = function ( a, start, end, cmp ) {
+    _quicksort  = function ( a, start, end ) {
         var pivot_index = null;
         if ( start < end ) {
-            pivot_index = _partition( a, start, end, cmp );
-            _quicksort( a, start, pivot_index - 1, cmp );
-            _quicksort( a, pivot_index + 1, end, cmp );
+            pivot_index = _partition( a, start, end );
+            _quicksort( a, start, pivot_index - 1  );
+            _quicksort( a, pivot_index + 1, end  );
         }
     };
 
-    _partition  = function ( a, start, end, cmp ) {
+    _partition  = function ( a, start, end  ) {
         // Randomize the last item of the array to reduce the risk
         // of `O(n^2)` performance in the worst case.
         _exchange( a, end, Math.floor( Math.random() * ( end - start ) + start ) );
@@ -42,7 +42,7 @@ exports.quicksort   = ( function () {
             i           = null;
 
         for ( i = start; i < end; i += 1 ) {
-            if ( cmp( a[ i ], pivot_value ) <= 0 ) {
+            if ( _comparison( a[ i ], pivot_value ) < 0 ) {
                 pivot_index += 1;
                 _exchange( a, pivot_index, i );
             }
@@ -65,6 +65,10 @@ exports.quicksort   = ( function () {
         if ( !cmp ) {
             cmp = function ( a, b ) { return a - b; };
         }
+
+        // Set the quasi-global comparison function.
+        _comparison = cmp;
+
         _quicksort( tmp, 0, tmp.length - 1, cmp );
         return tmp;
     };
